@@ -1,0 +1,8 @@
+<project basedir="." default="MAIN" name="ANTTEST">
+	
+	<target name="MAIN">
+		<echo>"HI!"</echo>
+	</target>
+
+
+</project>
