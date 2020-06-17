@@ -1,8 +1,80 @@
-<project basedir="." default="MAIN" name="ANTTEST">
+<project basedir="." default="main" name="ANTTEST">
 	
-	<target name="MAIN">
-		<echo>"HI!"</echo>
+	<property name="src.dir" value="src"/>
+	<property name="build.dir" value="build"/>
+	<property name="classes.dir" value="${build.dir}/classes"/>
+	
+	<path id = "classpath.base"/>
+	
+	<path id = "classpath.test">
+		<pathelement location = "lib/junit-4.13.jar" />
+	 	<pathelement location = "lib/hamcrest-core-1.3.jar" />
+		<pathelement location = "${srcdir}" />
+		<path refid = "classpath.base" />
+	</path>
+	
+	<target name="main" depends="run, test, doc" />
+	
+	<target name="clean">
+		<delete dir="${build.dir}" failonerror="false"/>
 	</target>
-
-
+	
+	<target name="get" depends="clean">
+		<copy todir="${build.dir}">
+		  <fileset dir="${src.dir}"/>
+		</copy>
+	</target>
+	
+	<target name="compile" depends="get">
+		<mkdir dir="${classes.dir}"/>
+		<javac includeantruntime="false" srcdir="${build.dir}" destdir="${classes.dir}">
+			<classpath refid = "classpath.test"/>
+		</javac>
+	</target>
+	
+	<target name="jar" depends="compile">
+		<jar destfile="${build.dir}/${ant.project.name}.jar" basedir="${classes.dir}"/>
+	</target>
+	
+	<target name="test" depends="jar">
+		<junit>
+			<classpath>
+				<path refid="classpath.base" />
+				<path location="${build.dir}/${ant.project.name}.jar" />
+			</classpath>
+			
+			<test name="de.bender.walkventure.PedometerTest" haltonfailure="no" > 
+				<formatter type="brief" usefile="false"/>
+			</test>
+		</junit>
+	</target>
+	
+	<target name="doc" depends="get">
+		<javadoc packagenames="de.bender.walkventure.*"
+		         sourcepath="${build.dir}"
+		         excludepackagenames="de.bender.walkventure.doc-files.*"
+		         defaultexcludes="yes"
+		         destdir="${build.dir}/docs/api"
+		         author="true"
+		         version="true"
+		         use="true"
+		         windowtitle="Test API">
+		  <doctitle><![CDATA[<h1>Test</h1>]]></doctitle>
+		  <bottom><![CDATA[<i>Copyright &#169; 2000 Dummy Corp. All Rights Reserved.</i>]]></bottom>
+		  <tag name="todo" scope="all" description="To do:"/>
+		  <group title="Group 1 Packages" packages="de.bender.walkventure.a*"/>
+		  <group title="Group 2 Packages" packages="de.bender.walkventure.b*:de.bender.walkventure.c*"/>
+		  <link offline="true" href="https://docs.oracle.com/javase/8/docs/api/" packagelistLoc="C:\tmp"/>
+		  <link href="https://docs.oracle.com/javase/8/docs/api/"/>
+		</javadoc>
+	</target>
+	
+	<target name="run" depends="jar">
+		 <java classname="de.bender.walkventure.Main" fork="true" >
+		        <classpath>
+		            <path refid="classpath.base" />
+		            <path location="${build.dir}/${ant.project.name}.jar" />
+		        </classpath>
+		 </java>
+	</target>
 </project>
