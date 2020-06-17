@@ -1,1 +1,0 @@
-typeSearchIndex = [{"p":"de.bender.walkventure","l":"Main"},{"p":"de.bender.walkventure","l":"Pedometer"},{"p":"de.bender.walkventure","l":"PedometerTest"}]
