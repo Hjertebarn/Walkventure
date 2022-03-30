@@ -1,7 +1,7 @@
 <project basedir="." default="main" name="ANTTEST">
 	
 	<property name="src.dir" value="src"/>
-	<property name="build.dir" value="build"/>
+	<property name="build.dir" value="mybuild"/>
 	<property name="classes.dir" value="${build.dir}/classes"/>
 	
 	<path id = "classpath.base"/>
@@ -13,19 +13,47 @@
 		<path refid = "classpath.base" />
 	</path>
 	
+	<macrodef name = "git">
+	    <attribute name = "command" />
+	    <attribute name = "dir" default = "" />
+	    <element name = "args" optional = "true" />
+	    <sequential>
+	        <echo message = "git @{command}" />
+	        <exec executable = "git" dir = "@{dir}">
+	            <arg value = "@{command}" />
+	            <args/>
+	        </exec>
+	    </sequential>
+	</macrodef>
+	<macrodef name = "git-clone-pull">
+	    <attribute name = "repository" />
+	    <attribute name = "dest" />
+	    <sequential>
+	        <git command = "clone">
+	            <args>
+	                <arg value = "@{repository}" />
+	                <arg value = "@{dest}" />
+	            </args>
+	        </git>
+	        <git command = "pull" dir = "@{dest}" />
+	    </sequential>
+	</macrodef>
+	
 	<target name="main" depends="run, test, doc" />
 	
 	<target name="clean">
+		<echo message = "delete build folder" />
 		<delete dir="${build.dir}" failonerror="false"/>
 	</target>
 	
 	<target name="get" depends="clean">
-		<copy todir="${build.dir}">
-		  <fileset dir="${src.dir}"/>
-		</copy>
+		<echo message = "clone/pull from github" />
+		<mkdir dir="${build.dir}"/>
+		<git-clone-pull repository="git://github.com/Hjertebarn/Walkventure.git" dest="${build.dir}" />
 	</target>
 	
 	<target name="compile" depends="get">
+		<echo message = "compile" />
 		<mkdir dir="${classes.dir}"/>
 		<javac includeantruntime="false" srcdir="${build.dir}" destdir="${classes.dir}">
 			<classpath refid = "classpath.test"/>
@@ -33,10 +61,12 @@
 	</target>
 	
 	<target name="jar" depends="compile">
+		<echo message = "build jar file" />
 		<jar destfile="${build.dir}/${ant.project.name}.jar" basedir="${classes.dir}"/>
 	</target>
 	
 	<target name="test" depends="jar">
+		<echo message = "testing" />
 		<junit>
 			<classpath>
 				<path refid="classpath.base" />
@@ -50,26 +80,12 @@
 	</target>
 	
 	<target name="doc" depends="get">
-		<javadoc packagenames="de.bender.walkventure.*"
-		         sourcepath="${build.dir}"
-		         excludepackagenames="de.bender.walkventure.doc-files.*"
-		         defaultexcludes="yes"
-		         destdir="${build.dir}/docs/api"
-		         author="true"
-		         version="true"
-		         use="true"
-		         windowtitle="Test API">
-		  <doctitle><![CDATA[<h1>Test</h1>]]></doctitle>
-		  <bottom><![CDATA[<i>Copyright &#169; 2000 Dummy Corp. All Rights Reserved.</i>]]></bottom>
-		  <tag name="todo" scope="all" description="To do:"/>
-		  <group title="Group 1 Packages" packages="de.bender.walkventure.a*"/>
-		  <group title="Group 2 Packages" packages="de.bender.walkventure.b*:de.bender.walkventure.c*"/>
-		  <link offline="true" href="https://docs.oracle.com/javase/8/docs/api/" packagelistLoc="C:\tmp"/>
-		  <link href="https://docs.oracle.com/javase/8/docs/api/"/>
-		</javadoc>
+		<echo message = "docs" />
+		<javadoc sourcepath="${src.dir}" destdir="${build.dir}/docs"/>
 	</target>
 	
 	<target name="run" depends="jar">
+		<echo message = "run Main" />
 		 <java classname="de.bender.walkventure.Main" fork="true" >
 		        <classpath>
 		            <path refid="classpath.base" />
